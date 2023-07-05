@@ -3,7 +3,7 @@ globals [
   lorenz-points
   died-working-mans ;; the amount of mans who died because lack of sugar
   died-retired-mans ;; the amount of mans who died because lack of sugar
-  piggy-bank ;; pensions piggy bank
+  Pensions-Fund ;; pensions piggy bank
   productivity-decay-list;; list with productivity porcentage for ages from 0 to 100 (101 values).
   social-services-use;; number of uses of social services
   accumulated-gdp ;; accumulated gross domestic product, sum of the sugar recollected every year before taxes (gdp is accumulated-gdp /ticks)
@@ -42,11 +42,11 @@ to setup
   clear-all
   create-mans initial-population [ turtle-setup ]
   ;; if random-initial-age, random initial age is set in mans. Note that turtle setup is called not only for the initial population as here in setup.
-  if ( random-initial-age )
-  [
-    ask mans [set age (random max-age) ]
-;    ask mans [set age 0 ]
-  ]
+;  if ( random-initial-age )
+;  [
+;    ask mans [set age (random max-age) ]
+;;    ask mans [set age 0 ]
+;  ]
   ;; initialization for productivity decay list
   set productivity-decay-list [0.00 0.08 0.16 0.24 0.31 0.38 0.45 0.51 0.57 0.63 0.68 0.72 0.76 0.79 0.82 0.84 0.86 0.87 0.88 0.90 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.97 0.98 0.99 0.99 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 0.99 0.99 0.99 0.98 0.98 0.98 0.97 0.97 0.96 0.96 0.95 0.94 0.93 0.92 0.91 0.90 0.89 0.88 0.86 0.85 0.83 0.82 0.80 0.79 0.77 0.75 0.73 0.72 0.70 0.68 0.66 0.64 0.62 0.60 0.58 0.55 0.53 0.51 0.49 0.46 0.44 0.41 0.39 0.36 0.34 0.31 0.29 0.26 0.23 0.20 0.18 0.15 0.12 0.09 0.06 0.03 0.0]
   setup-patches
@@ -74,7 +74,7 @@ to turtle-setup ;; turtle procedure
     set vision-points sentence vision-points (list (list 0 n) (list n 0) (list 0 (- n)) (list (- n) 0))
   ]
   set retired false
-  run visualization ;; run the procedure selected in the GUI
+;  run visualization ;; run the procedure selected in the GUI
 end
 
 to setup-patches
@@ -123,12 +123,12 @@ to go
 
     ;;social services inclusion: working agents can get sugar from the piggy bank if they run out of sugar.
     ;;unlike retired agents, they still move and get sugar considering their productivity if productivity decay is activated
-    if(social-services and  ( not retired ) and sugar <= 0 and  (piggy-bank + (sugar - 1) > 0) )
+    if(social-services and  ( not retired ) and sugar <= 0 and  (Pensions-Fund + (sugar - 1) > 0) )
     [
       ;;print ( "social services being used by turtle:")
       ;;print(who)
       set social-services-use (social-services-use + 1)
-      set piggy-bank (piggy-bank + (sugar - 1) ) ;;sugar is 0 or less.
+      set Pensions-Fund (Pensions-Fund + (sugar - 1) ) ;;sugar is 0 or less.
       set sugar 1 ;; the agent survive to the next instructions because of social services
     ]
 
@@ -142,7 +142,7 @@ to go
 ;      hatch 1 [ turtle-setup ]
       die
     ]
-    run visualization
+;    run visualization
   ]
   update-lorenz-and-gini
   tick
@@ -188,12 +188,12 @@ end
 
 to turtle-eat ;; turtle procedure
   set sugar (sugar - metabolism + ( psugar * (1 - pension-taxes / 100) * ifelse-value(productivity-decay)[item age productivity-decay-list][1] )  )
-  set piggy-bank (piggy-bank +   (psugar * pension-taxes / 100) * ifelse-value(productivity-decay)[item age productivity-decay-list][1] )
+  set Pensions-Fund (Pensions-Fund +   (psugar * pension-taxes / 100) * ifelse-value(productivity-decay)[item age productivity-decay-list][1] )
   ;;Japanese system, you get charged a fixed amount (if no sugar to pay it, it is not payed assuming the exemption system)
   if ( ( sugar - fixed-fee ) > 0 )   ; the agent dies if sugar is equal to 0
   [
     set sugar (sugar - fixed-fee)
-    set piggy-bank (piggy-bank + fixed-fee)
+    set Pensions-Fund (Pensions-Fund + fixed-fee)
   ]
   ;; the sugar retreived according to productivity is accumulated in the GDP
   set accumulated-gdp accumulated-gdp + ( psugar * ifelse-value(productivity-decay)[item age productivity-decay-list][1])
@@ -204,12 +204,12 @@ to turtle-eat ;; turtle procedure
 end
 
 to retired-turtle-eat ;; turtle procedure for eat from the pensions piggy bank
-  ifelse (piggy-bank - metabolism > 0)
+  ifelse (Pensions-Fund - metabolism > 0)
   [
-    set piggy-bank (piggy-bank - metabolism) ;; retired turtle eat from the piggy bank
+    set Pensions-Fund (Pensions-Fund - metabolism) ;; retired turtle eat from the piggy bank
   ]
   [
-    set sugar (sugar - metabolism) ;; if no money in the piggy-bank, the turtle needs to eat from the savings
+    set sugar (sugar - metabolism) ;; if no money in the Pensions-Fund, the turtle needs to eat from the savings
   ]
 
 end
@@ -389,16 +389,6 @@ NIL
 NIL
 0
 
-CHOOSER
-10
-365
-290
-410
-visualization
-visualization
-"no-visualization" "color-agents-by-vision" "color-agents-by-metabolism"
-0
-
 PLOT
 750
 10
@@ -471,7 +461,7 @@ PLOT
 285
 955
 415
-Gini index vs. time
+Gini Coefficient
 Time
 Gini
 0.0
@@ -499,25 +489,6 @@ maximum-sugar-endowment
 NIL
 HORIZONTAL
 
-PLOT
-960
-285
-1160
-415
-Social Exclusion
-Time
-Agents
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"Workers" 1.0 0 -2674135 true "" "plot died-working-turtles"
-"Retirees" 1.0 0 -13345367 true "" "plot died-retired-turtles"
-
 SLIDER
 10
 135
@@ -540,7 +511,7 @@ SWITCH
 363
 productivity-decay
 productivity-decay
-1
+0
 1
 -1000
 
@@ -566,7 +537,7 @@ SWITCH
 323
 resources-occupation
 resources-occupation
-1
+0
 1
 -1000
 
@@ -575,7 +546,7 @@ PLOT
 145
 1160
 275
-Pensions piggy bank
+Pensions Fund
 Time
 Sugar
 0.0
@@ -586,18 +557,7 @@ true
 false
 "" ""
 PENS
-"Piggy bank" 1.0 0 -10899396 true "" "plot piggy-bank "
-
-SWITCH
-10
-290
-150
-323
-random-initial-age
-random-initial-age
-1
-1
--1000
+"Pensions Fund" 1.0 0 -10899396 true "" "plot Pensions-Fund"
 
 SWITCH
 150
@@ -609,21 +569,6 @@ social-services
 0
 1
 -1000
-
-SLIDER
-10
-215
-102
-248
-fixed-fee
-fixed-fee
-0
-4
-2.0
-0.1
-1
-NIL
-HORIZONTAL
 
 PLOT
 960
@@ -645,10 +590,10 @@ PENS
 "Workers" 1.0 0 -2674135 true "" "plot count (turtles with [retired = false ])"
 
 PLOT
-1190
-15
-1390
-165
+960
+285
+1160
+415
 Population
 Time
 Population
@@ -657,10 +602,25 @@ Population
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"" 1.0 0 -16777216 true "" "plot count turtles"
+
+SLIDER
+10
+215
+102
+248
+fixed-fee
+fixed-fee
+0
+4
+2.0
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
